@@ -1,4 +1,4 @@
-#Scylla Alternator Export
+# Scylla Alternator Export
 
 ScyllaDB has a DynamoDB compatible API which is named Scylla Alternator. You can use the AWS CLI and SDK to access ScyllaDB. This is quite awesome.
 
