@@ -11,15 +11,6 @@ import java.net.URI;
 import java.util.List;
 
 
-
-/**
- * Before running this Java V2 code example, set up your development
- * environment, including your credentials.
- *
- * For more information, see the following documentation topic:
- *
- * https://docs.aws.amazon.com/sdk-for-java/latest/developer-guide/get-started.html
- */
 public class ListTables {
     public static void main(String[] args) {
         System.out.println("Listing your Amazon DynamoDB tables:\n");
