@@ -1,30 +1,21 @@
 package com.scylla;
 
-import java.io.BufferedWriter;
-import java.io.File;
+
 import java.io.FileOutputStream;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.net.URI;
-import java.util.List;
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.Set;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipOutputStream;
+import java.util.zip.GZIPOutputStream;
 
 //import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.DynamoDbException;
 import software.amazon.awssdk.enhanced.dynamodb.document.EnhancedDocument;
-import software.amazon.awssdk.services.dynamodb.model.ListTablesRequest;
-import software.amazon.awssdk.services.dynamodb.model.ListTablesResponse;
 import software.amazon.awssdk.services.dynamodb.model.ScanRequest;
-import software.amazon.awssdk.services.dynamodb.model.ScanResponse;
 import software.amazon.awssdk.services.dynamodb.paginators.ScanIterable;
-import software.amazon.awssdk.services.guardduty.model.ScanResult;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
-import software.amazon.awssdk.services.dynamodb.model.DynamoDbException;
 
 public class Scan {
     public static void main(String[] args) {
@@ -35,6 +26,12 @@ public class Scan {
         System.out.println("Scanning your Amazon DynamoDB table: "+tableName+" \n");
         ArrayList<String> list = new ArrayList<String>();
         StringBuilder sb = new StringBuilder();
+        String filePath = "/Users/wpaven/ddb_to_scylla_migration/import_export_java/"; 
+
+        String fileToSave = "original.json";
+        String zipFileToSave = "original.zip";
+        String gzipFileToSave = "original.json.gz";
+
 
         //Region region = Region.US_WEST_2;
         DynamoDbClient ddb = DynamoDbClient.builder()
@@ -50,7 +47,7 @@ public class Scan {
                     //.limit(2)
                     //.filterExpression("Artist = :Artist")
                     //.expressionAttributeValues(
-                      /// Map.of(":Artist", AttributeValue.builder().s("Taylor Swift").build())) // Using Java 9+ Map.of
+                    // Map.of(":Artist", AttributeValue.builder().s("Taylor Swift").build())) // Using Java 9+ Map.of
                     .build();
 
                     //ScanResponse result = ddb.scan(request);
@@ -66,45 +63,41 @@ public class Scan {
                         EnhancedDocument t = EnhancedDocument.fromAttributeValueMap(item);
                         System.out.println(t.toJson());
 
+                        sb.append(t.toJson());
+                        sb.append(System.getProperty("line.separator"));
 
-                        list.add(t.toJson());
-
-                        String filePath = "/Users/wpaven/ddb_to_scylla_migration/import_export_java/"; 
-                        /*try (BufferedWriter writer = new BufferedWriter(new FileWriter(filePath)))  
-                        { 
-                            for (String str : list) { 
-                               writer.write(str); 
-                               writer.newLine();  
-                            } 
-                         System.out.println("ArrayList written to file successfully."); 
-                        } catch (IOException e) { 
-                            e.printStackTrace(); 
-                        } 
-                       */
-                        try{
-                          sb.append(t.toJson());
-                          sb.append(System.getProperty("line.separator"));
-
-                          File f = new File(filePath+"output.zip");
-                          ZipOutputStream out = new ZipOutputStream(new FileOutputStream(f));
-                          ZipEntry e = new ZipEntry("output.txt");
-                          out.putNextEntry(e);
-
-                          byte[] data = sb.toString().getBytes();
-                          out.write(data, 0, data.length);
-                          out.closeEntry();
-                          out.close();
-                        }catch(IOException e){
-                           System.out.println("ERROR: "+e.getStackTrace());
-                        }
                     }
 
         } catch (DynamoDbException e) {
             e.getStackTrace();
         }
-       
-        //listAllTables(ddb);
-        ddb.close();
+
+        try (
+                FileOutputStream outputStream     = new FileOutputStream(filePath+gzipFileToSave);
+                GZIPOutputStream gzipOutputStream = new GZIPOutputStream(outputStream)
+                ) 
+                {
+                    byte[] data = sb.toString().getBytes();
+                    gzipOutputStream.write(data);
+            
+           /* 
+            File f = new File(filePath+"output.zip");
+            ZipOutputStream out = new ZipOutputStream(new FileOutputStream(f));
+            ZipEntry e = new ZipEntry(fileToSave);
+            out.putNextEntry(e);
+
+            byte[] data = sb.toString().getBytes();
+            out.write(data, 0, data.length);
+            out.closeEntry();
+            out.close();
+           */
+            
+          }catch(IOException e){
+             System.out.println("ERROR: "+e.getStackTrace());
+          }
+
+          ddb.close();
+
     }
 
     
