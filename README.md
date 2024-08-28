@@ -47,3 +47,6 @@ Now, the export to S3 for Dynamo also stores a manifest and additional info in t
 We have a MVP working here for saving a small table from Scylla Alternator to S3.  Moving on to parallelizing the scan as well as saving directly to S3. (File currenlty lands locally first.)
 
 
+**Scan.java drives this. Update configs/app.config for your environments.**
+ ListTables is some practice stuff I'll be removing.
+
