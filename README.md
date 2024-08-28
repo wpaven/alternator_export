@@ -48,5 +48,6 @@ We have a MVP working here for saving a small table from Scylla Alternator to S3
 
 
 **Scan.java drives this. Update configs/app.config for your environments.**
+
  ListTables is some practice stuff I'll be removing.
 
