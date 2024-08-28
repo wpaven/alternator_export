@@ -13,7 +13,7 @@ As this is early days, I'm aware it ain't too pretty.  At the moment, I'm just b
 There's a lot of documentation on using the DynamoDB SDK, but it is dated.  Funny enough, if you see _"services.dynamodbv2"_ in the package being imported, this is the older SDK.
 
 The concepts here are to
-1. Scan the dynamo table
+1. Scan the dynamo table (table in ScyllaDB)
 2. Convert the results to JSON
 3. Package the JSON to a .zip file (saving as gzip)
 4. Save to S3 (Saving to S3, but currently first to file system)
