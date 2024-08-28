@@ -1,2 +1,3 @@
 target/classes/com/scylla/Scan.class
 target/classes/com/scylla/ListTables.class
+target/classes/com/scylla/ConfigFileReader.class

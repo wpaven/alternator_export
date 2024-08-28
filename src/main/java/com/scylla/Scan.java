@@ -1,15 +1,21 @@
 package com.scylla;
 
-
+//import com.scylla.ConfigFileReader;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.URI;
-import java.util.ArrayList;
 import java.util.Map;
 import java.util.Set;
 import java.util.zip.GZIPOutputStream;
 
-//import software.amazon.awssdk.regions.Region;
+
+import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+import software.amazon.awssdk.core.sync.RequestBody;
+import software.amazon.awssdk.auth.credentials.ProfileCredentialsProvider;
+import java.io.File;
+
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.DynamoDbException;
 import software.amazon.awssdk.enhanced.dynamodb.document.EnhancedDocument;
@@ -18,26 +24,50 @@ import software.amazon.awssdk.services.dynamodb.paginators.ScanIterable;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 public class Scan {
+
+    static void saveToS3(String bucketName, String keyName, String profile, String fileToSave) {
+        System.out.println("We will be saving to S3!");
+        String filePath = fileToSave; //"/path/to/your/file.txt";
+
+        System.out.println("====File to Save"+filePath);
+
+        Region region = Region.US_EAST_1; // Replace with your desired region
+        S3Client s3Client = S3Client.builder()
+                .region(region)
+                .credentialsProvider(ProfileCredentialsProvider.create(profile))
+                .build();
+
+        try {
+            PutObjectRequest request = PutObjectRequest.builder()
+                    .bucket(bucketName)
+                    .key(keyName)
+                    .build();
+
+            s3Client.putObject(request, RequestBody.fromFile(new File(filePath)));
+            System.out.println("File uploaded successfully.");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
     public static void main(String[] args) {
 
-        //String tableName = args[0];
-        //String tableName = "PeteExportTest";
-        String tableName = "MusicCollection";
-        System.out.println("Scanning your Amazon DynamoDB table: "+tableName+" \n");
-        ArrayList<String> list = new ArrayList<String>();
         StringBuilder sb = new StringBuilder();
-        String filePath = "/Users/wpaven/ddb_to_scylla_migration/import_export_java/"; 
+        ConfigFileReader cr = new ConfigFileReader();
 
-        String fileToSave = "original.json";
-        String zipFileToSave = "original.zip";
-        String gzipFileToSave = "original.json.gz";
+        String tableName = cr.getTableName();
+        System.out.println("Scanning your Amazon DynamoDB table: "+tableName+" \n");
 
+        String filePath = cr.getFilePath();
+        String gzipFileToSave = cr.getGzipFileToSave();
+        String scyllaEndpointURL = cr.getendPointOverrideUrl();
+        String bucketName = cr.getBucketName();
+        String keyName = cr.getKeyName();
+        String profile = cr.getProfile();
 
         //Region region = Region.US_WEST_2;
         DynamoDbClient ddb = DynamoDbClient.builder()
-                //.region(region)
-                //.endpointOverride(URI.create("http://34.23.43.173:8000"))
-                .endpointOverride(URI.create("http://node-0.gce-us-east-1.76474865b7745a2ec5bd.clusters.scylla.cloud:8000"))
+                //.region(region) NOT NEEDED FOR SCYLLA
+                .endpointOverride(URI.create(scyllaEndpointURL))
                 .build();
 
               try {
@@ -72,15 +102,15 @@ public class Scan {
             e.getStackTrace();
         }
 
-        try (
-                FileOutputStream outputStream     = new FileOutputStream(filePath+gzipFileToSave);
-                GZIPOutputStream gzipOutputStream = new GZIPOutputStream(outputStream)
-                ) 
-                {
-                    byte[] data = sb.toString().getBytes();
-                    gzipOutputStream.write(data);
+        try ( 
+             FileOutputStream outputStream     = new FileOutputStream(filePath+gzipFileToSave);
+             GZIPOutputStream gzipOutputStream = new GZIPOutputStream(outputStream)
+            ) 
+            {
+                byte[] data = sb.toString().getBytes();
+                gzipOutputStream.write(data);
             
-           /* 
+           /*  originally saved as .zip. jury out on how we finally export...
             File f = new File(filePath+"output.zip");
             ZipOutputStream out = new ZipOutputStream(new FileOutputStream(f));
             ZipEntry e = new ZipEntry(fileToSave);
@@ -95,7 +125,7 @@ public class Scan {
           }catch(IOException e){
              System.out.println("ERROR: "+e.getStackTrace());
           }
-
+          saveToS3(bucketName, keyName, profile, filePath+gzipFileToSave);
           ddb.close();
 
     }
