@@ -15,8 +15,8 @@ There's a lot of documentation on using the DynamoDB SDK, but it is dated.  Funn
 The concepts here are to
 1. Scan the dynamo table
 2. Convert the results to JSON
-3. Package the JSON to a .zip file
-4. Save to S3  (currently just saving to the filesystem)
+3. Package the JSON to a .zip file (saving as gzip)
+4. Save to S3 (Saving to S3, but currently first to file system)
 
 For 1, this code currently needs to be updated to run a parallel scan.
 
