@@ -8,7 +8,7 @@ This repo is me looking into how one might scan an Alternator table in ScyllaDB 
 
 The use case is exporting from ScyllaDB Alternator to an S3 bucket so data can be picked up by AWS Glue or GCP Cloud Data fusion (yes, with ScyllaDB you can run DynamoDB workloads on GCP) or other tools for data analysis. 
 
-As I've just checked it in, I'm aware it ain't pretty. I've got hardcoded paths and values. These should come from config files.  But at the moment, I'm just becoming familiar with the AWS Dynamo SDK.  The SDK is version 2. The preferred way to grab this is using maven.  
+As this is early days, I'm aware it ain't too pretty.  At the moment, I'm just becoming familiar with the AWS Dynamo SDK.  The SDK is version 2. The preferred way to grab this is using maven.  
 
 There's a lot of documentation on using the DynamoDB SDK, but it is dated.  Funny enough, if you see _"services.dynamodbv2"_ in the package being imported, this is the older SDK.
 
@@ -43,5 +43,7 @@ The goal is to mimic Dynamo export, which stores each item on it's own line with
 {"Item":{"Artist":{"S":"Scylla Seamonster"},"SongTitle":{"S":"Monstrously Fast"},"AlbumTitle":{"S":"Scale Them All"}}}
 ```
 Now, the export to S3 for Dynamo also stores a manifest and additional info in the S3 bucket. I'm only focused on exporting the JSON at this time.
+
+We have a MVP working here for saving a small table from Scylla Alternator to S3.  Moving on to parallelizing the scan as well as saving directly to S3. (File currenlty lands locally first.)
 
 
